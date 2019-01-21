@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+
+require_relative "../lib/sun"
+
+sun = Sun.new
+seasons = (0..11).map { |m| m/12.0 }
+
+p seasons.map{ |m| sun.declination(m) }
+
+(-90..90).step(5).each do |lat|
+  rs = seasons.map{ |m| sun.daily_radiation(lat, m) }
+  p [
+    lat,
+    rs.sum.round(6),
+    rs,
+  ]
+end
+
