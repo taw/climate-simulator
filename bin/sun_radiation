@@ -5,8 +5,10 @@ require_relative "../lib/sun"
 sun = Sun.new
 seasons = (0..11).map { |m| m/12.0 }
 
+puts "Declination"
 p seasons.map{ |m| sun.declination(m) }
 
+puts "", "Radiation"
 (-90..90).step(5).each do |lat|
   rs = seasons.map{ |m| sun.daily_radiation(lat, m) }
   p [
@@ -16,3 +18,15 @@ p seasons.map{ |m| sun.declination(m) }
   ]
 end
 
+puts "", "Equiliblrium Daily Mean Temperature"
+puts "LAT      YEAR      " + (1..12).map{|i| "MON %2d" % i}.join("     ")
+(-90..90).step(5).each do |lat|
+  rs = seasons.map{ |m| sun.daily_radiation(lat, m) }
+  puts [
+    "%+3d" % lat,
+    "%+7.2f" % Sun.equilibrium_temperature(rs.sum / 12),
+    rs.map{|rsi| "%+7.2f" % Sun.equilibrium_temperature(rsi) },
+  ].join("    ")
+end
+
+puts ""

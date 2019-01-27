@@ -42,6 +42,15 @@ describe Sun do
   end
 
   it "#daily_radation" do
-    expect(sun.daily_radiation(0, 0.25)).to eq(0.30123)
+    expect(sun.daily_radiation(0, 0.25)).to eq(0.31649)
+  end
+
+  # C <-> K
+  it "emissions" do
+    expect(Sun.emissions(30)).to eq(0.31649)
+  end
+
+  it "equilibrium_temperature" do
+    expect(Sun.equilibrium_temperature(0.31649)).to eq(30)
   end
 end

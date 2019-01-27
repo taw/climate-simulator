@@ -49,4 +49,17 @@ class Sun
       radiation(lat, season, h)
     end.sum / 24.0).round(6)
   end
+
+  class << self
+    CK = 273.15
+    FACTOR = 0.31649 * (1 / (30 + 273.15)) ** 4
+
+    def emissions(temp)
+      (((temp + CK) ** 4) * FACTOR).round(6)
+    end
+
+    def equilibrium_temperature(em)
+      (((em / FACTOR) ** 0.25) - CK).round(6)
+    end
+  end
 end
