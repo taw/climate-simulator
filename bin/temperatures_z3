@@ -1,0 +1,35 @@
+#!/usr/bin/env ruby
+
+# Trying to use Z3 for approximate solution, but that's not really working
+
+require_relative "../lib/sun"
+require_relative "../lib/ground"
+require "z3"
+
+sun = Sun.new
+capacity = 1.0
+lat = 30.0
+ground = Ground.new(capacity, lat, sun)
+
+solver = Z3::Solver.new
+temps_k = (1..12).map{|i| Z3.Real("temp#{i}")}
+energy_in = (1..12).map{|i| Z3.Real("e_in_#{i}")}
+energy_out = (1..12).map{|i| Z3.Real("e_out_#{i}")}
+
+# factor = 3747396976627353/100000000000000000000000000
+
+12.times do |i|
+  monthly_average = (i*30...(i+1)*30).map{|j| ground.daily_incoming_radiation(j / 360.0) }.avg
+
+  solver.assert energy_out[i] == ((temps_k[i] ** 4) * 375 / 10000000000000)
+  solver.assert energy_in[i] == monthly_average
+
+  # monthly vs daily capacity ???
+  solver.assert temps_k[(i+1) % 12] == temps_k[i] + (energy_in[i] - energy_out[i]) / capacity
+
+  solver.assert temps_k[i] > 0
+end
+
+1.times do |i|
+  binding.pry
+end

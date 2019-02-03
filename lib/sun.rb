@@ -9,7 +9,16 @@ module Math
   end
 end
 
+module Enumerable
+  def avg
+    sum / size.to_f
+  end
+end
+
 class Sun
+  CK = 273.15
+  FACTOR = 0.31649 * (1 / (30 + 273.15)) ** 4
+
   def tilt
     23.45
   end
@@ -51,9 +60,6 @@ class Sun
   end
 
   class << self
-    CK = 273.15
-    FACTOR = 0.31649 * (1 / (30 + 273.15)) ** 4
-
     def emissions(temp)
       (((temp + CK) ** 4) * FACTOR).round(6)
     end
