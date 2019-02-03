@@ -1,4 +1,6 @@
 class Ground
+  attr_reader :capacity, :lat, :sun
+
   def initialize(capacity, lat, sun)
     @capacity = capacity
     @lat = lat
@@ -11,45 +13,44 @@ class Ground
     @sun.daily_radiation(@lat, season)
   end
 
-  ### This stuff is not physically meaningful
-  ### At least not until simulation reached equilibrium
-
-  attr_reader :temp
-
-  def slice_average_temp(start_i, end_i)
-    (start_i..end_i).map{|i| @temp[i % 360] }.avg
+  def monthly_average_radiation(month)
+    (month*30...(month+1)*30).map{|j| @incoming[j] }.avg
   end
 
-  def daily_outgoing_radiation(i)
-    Sun.emissions @temp[i]
+  def annual_average_radiation
+    (0...12).map{|month| monthly_average_radiation(month) }.avg
   end
 
   def daily_equilibrium_temperature(season)
     Sun.equilibrium_temperature(daily_incoming_radiation(season))
   end
 
-  # It doesn't matter terribry much where we start,
-  # convergence could be faster if we do something reasonable
-  def start_simulation
-    # @temp = 360.times.map{|i|
-    #   Sun.equilibrium_temperature(daily_incoming_radiation(i / 360.0))
-    # }
-    @temp = 360.times.map{ 0.0 }
+  ### This stuff is not physically meaningful
+  ### At least not until simulation reached equilibrium
+
+  attr_reader :temp
+
+  def average_annual_temp
+    @temp.avg
   end
 
-  def advance_simulation(alpha=0.1)
-    balances = 360.times.map do |i|
-      season = i / 360.0
-      (@incoming[i] - daily_outgoing_radiation(i)) / @capacity
-    end
+  # Start somewhere reasonable for decent convergence
+  def start_simulation
+    t = Sun.equilibrium_temperature(annual_average_radiation)
+    @temp = 12.times.map{ t }
+  end
 
-    new_temps = 360.times.map do |i|
-      forw_temp = [@temp[i-1] + balances[i-1], -273.15].max
-      new_temp = @temp[i] * (1 - alpha) + forw_temp * alpha
+  # Just make climate happen, no trickery!
+  def advance_simulation
+    total_dt = 0.0
+    12.times do |i|
+      inext = (i+1) % 12
+      energy_diff = (monthly_average_radiation(i) - Sun.emissions(@temp[i]))
+      forw_temp = @temp[i] + energy_diff / @capacity
+      forw_temp = [forw_temp, -273.15].max
+      total_dt += (@temp[inext] - forw_temp).abs
+      @temp[inext] = forw_temp
     end
-    total_dt = new_temps.zip(@temp).map{|u,v| u-v}.map(&:abs).sum
-    @temp = new_temps
-
     total_dt
   end
 end

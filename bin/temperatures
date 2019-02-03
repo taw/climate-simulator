@@ -3,42 +3,40 @@
 require_relative "../lib/sun"
 require_relative "../lib/ground"
 
+def print_temps(ground)
+  puts [
+    "%+3d" % ground.lat,
+    ground.temp.map{|ti| "    %+7.2f" % ti },
+    " |   %+7.2f" % ground.average_annual_temp,
+  ].join("")
+end
+
 sun = Sun.new
 
 puts "Land"
 # Land - low capacity
 (-90..90).step(5).each do |lat|
-  ground = Ground.new(1.0, lat, sun)
+  ground = Ground.new(0.02, lat, sun)
   ground.start_simulation
-  1000.times do
-    dt = ground.advance_simulation(0.5).round(4)
-    # break if dt < 1
+  10.times do
+    # print_temps(ground)
+    dt = ground.advance_simulation.round(4)
   end
 
-  temps = (0..11).map{|i| ground.slice_average_temp(i*30, i*30 + 29) }
-
-  puts [
-    "%+3d" % lat,
-    temps.map{|ti| "%+7.2f" % ti },
-  ].join("    ")
+  print_temps(ground)
 end
+
+
 puts ""
 
 puts "Sea"
 # Sea - high capacity
-# Land - low capacity
 (-90..90).step(5).each do |lat|
-  ground = Ground.new(100.0, lat, sun)
+  ground = Ground.new(0.1, lat, sun)
   ground.start_simulation
-  1000.times do
-    dt = ground.advance_simulation(0.5).round(4)
-    # break if dt < 1
+  10.times do
+    # print_temps(ground)
+    dt = ground.advance_simulation.round(4)
   end
-
-  temps = (0..11).map{|i| ground.slice_average_temp(i*30, i*30 + 29) }
-
-  puts [
-    "%+3d" % lat,
-    temps.map{|ti| "%+7.2f" % ti },
-  ].join("    ")
+  print_temps(ground)
 end
